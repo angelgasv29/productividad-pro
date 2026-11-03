@@ -224,14 +224,14 @@ base = hábitos * 0.40 + rutinas * 0.40 + backlog * 0.20
 
 ```mermaid
 flowchart LR
-    UI["Frontend\nHTML + CSS + JS modular"] --> API["FastAPI\nRouters /api/v1"]
-    API --> AUTH["Auth\nJWT HttpOnly + Bearer"]
-    API --> SVC["Services\nReglas de negocio"]
-    SVC --> DOMAIN["Domain\nScoring · Fecha lógica · Enums"]
-    SVC --> REPO["Repositories\nSQLAlchemy 2.0"]
-    REPO --> DB[("SQLite\nWAL · foreign_keys")]
-    SVC --> BACKUP["Backups\nJSON A/B + legacy"]
-    API --> TPL["Jinja2\nindex · login"]
+    UI["Frontend<br/>HTML + CSS + JS modular"] --> API["FastAPI<br/>Routers /api/v1"]
+    API --> AUTH["Auth<br/>JWT HttpOnly + Bearer"]
+    API --> SVC["Services<br/>Reglas de negocio"]
+    SVC --> DOMAIN["Domain<br/>Scoring · Fecha lógica · Enums"]
+    SVC --> REPO["Repositories<br/>SQLAlchemy 2.0"]
+    REPO --> DB[("SQLite<br/>WAL · foreign_keys")]
+    SVC --> BACKUP["Backups<br/>JSON A/B + legacy"]
+    API --> TPL["Jinja2<br/>index · login"]
 ```
 
 **Clean / Hexagonal en la práctica:**
