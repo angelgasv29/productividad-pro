@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso · Productividad Pro</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body class="auth-page">
+<div class="auth-shell">
+    <div class="auth-brand">
+        <div class="header-title">📊 Productividad Pro</div>
+        <p class="text-sm" style="margin-top:.4rem;">Hábitos · Rutinas · Backlog · Objetivos · Timer Pro</p>
+    </div>
+    <div class="auth-card">
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-auth-tab="login">Iniciar sesión</button>
+            <button class="auth-tab" data-auth-tab="register">Crear cuenta</button>
+        </div>
+        <form class="auth-form" id="loginForm">
+            <div>
+                <label for="loginIdentifier">Usuario o email</label>
+                <input type="text" id="loginIdentifier" autocomplete="username" required>
+            </div>
+            <div>
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" autocomplete="current-password" required>
+            </div>
+            <div class="auth-error" id="loginError"></div>
+            <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Entrar</button>
+        </form>
+        <form class="auth-form hidden" id="registerForm">
+            <div>
+                <label for="registerUsername">Usuario</label>
+                <input type="text" id="registerUsername" autocomplete="username" minlength="3" maxlength="40" pattern="[A-Za-z0-9_.-]+" required>
+                <span class="auth-password-hint">3–40 caracteres: letras, números, punto, guion o guion bajo.</span>
+            </div>
+            <div>
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" autocomplete="email" required>
+            </div>
+            <div>
+                <label for="registerPassword">Contraseña</label>
+                <input type="password" id="registerPassword" autocomplete="new-password" minlength="8" maxlength="128" required>
+                <span class="auth-password-hint">Mínimo 8 caracteres, con letras y números.</span>
+            </div>
+            <div>
+                <label for="registerRepeat">Repetir contraseña</label>
+                <input type="password" id="registerRepeat" autocomplete="new-password" minlength="8" maxlength="128" required>
+            </div>
+            <div class="auth-error" id="registerError"></div>
+            <button type="submit" class="btn btn-primary" id="registerSubmitBtn">Crear cuenta</button>
+        </form>
+        <p class="auth-footer">Tus datos se guardan localmente en SQLite. Versión {{ app_version }}.</p>
+    </div>
+</div>
+<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastText"></span></div>
+<script src="/static/js/login.js"></script>
+</body>
+</html>

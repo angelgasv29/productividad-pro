@@ -1,0 +1,72 @@
+# Licencia privativa / Proprietary License
+
+Copyright (c) 2026 Angel Villegas. Todos los derechos reservados.
+Copyright (c) 2026 Angel Villegas. All rights reserved.
+
+---
+
+## Español
+
+Este repositorio y todo su contenido —incluyendo, sin limitación, el código fuente,
+la arquitectura, la documentación, los diseños, las imágenes y los textos— son
+propiedad exclusiva de Angel Villegas.
+
+El repositorio se publica únicamente con fines de visualización, demostración y
+evaluación. **El hecho de que sea público no lo convierte en software de código
+abierto ni concede ningún derecho de uso más allá de los expresamente indicados
+en esta licencia.**
+
+No se concede permiso para:
+
+- copiar, reproducir ni redistribuir el software, total o parcialmente;
+- modificarlo, adaptarlo, traducirlo ni crear obras derivadas;
+- fusionarlo, publicarlo, sublicenciarlo, venderlo, alquilarlo ni explotarlo
+  comercialmente;
+- desplegarlo como servicio público o privado para terceros;
+- eliminar o alterar los avisos de autoría, copyright o licencia.
+
+Cualquier uso distinto de la visualización y evaluación privada requiere una
+autorización previa y por escrito del titular. Para solicitar una licencia
+comercial o un permiso específico, contacta a **@angelgasv29** en GitHub.
+
+Los componentes de terceros incluidos o utilizados por el proyecto se rigen por
+sus propias licencias, según se detalla en [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+EL SOFTWARE SE PROPORCIONA «TAL CUAL», SIN GARANTÍAS DE NINGÚN TIPO, EXPRESAS O
+IMPLÍCITAS, INCLUYENDO, ENTRE OTRAS, LAS GARANTÍAS DE COMERCIABILIDAD, IDONEIDAD
+PARA UN FIN PARTICULAR Y NO INFRACCIÓN. EN NINGÚN CASO EL TITULAR SERÁ RESPONSABLE
+DE NINGÚN DAÑO DERIVADO DEL USO O DE LA IMPOSIBILIDAD DE USO DEL SOFTWARE.
+
+---
+
+## English
+
+This repository and all of its contents —including, without limitation, the
+source code, architecture, documentation, designs, images, and text— are the
+exclusive property of Angel Villegas.
+
+The repository is published solely for viewing, demonstration, and evaluation
+purposes. **Its public availability does not make it open-source software and
+does not grant any rights beyond those expressly stated in this license.**
+
+No permission is granted to:
+
+- copy, reproduce, or redistribute the software, in whole or in part;
+- modify, adapt, translate, or create derivative works;
+- merge, publish, sublicense, sell, rent, or commercially exploit it;
+- deploy it as a public or private service for third parties;
+- remove or alter any authorship, copyright, or license notices.
+
+Any use other than private viewing and evaluation requires prior written
+authorization from the copyright holder. To request a commercial license or a
+specific permission, contact **@angelgasv29** on GitHub.
+
+Third-party components included in or used by the project are governed by their
+own licenses, as described in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.

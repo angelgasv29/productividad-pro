@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productividad Pro</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <script src="/static/vendor/chart.umd.min.js"></script>
+</head>
+<body data-username="{{ user.username }}" data-user-id="{{ user.id }}">
+<div class="app-container">
+    <header>
+        <div class="header-title">📊 Productividad Pro</div>
+        <div class="header-actions">
+            <select id="workspaceSelect" title="Espacio de trabajo" style="width:auto;min-width:130px;"></select>
+            <button class="btn btn-outline" id="manageWorkspacesBtn" title="Gestionar espacios">🗂️</button>
+            <button class="btn btn-outline" id="themeToggle" title="Cambiar tema">🌙</button>
+            <span class="text-sm" id="yearCountdown" title="Año en curso">⏳</span>
+            <button class="btn btn-outline" id="exportBtn" title="Exportar backup JSON">⬇️ Exportar</button>
+            <label class="btn btn-outline" for="importFile" title="Importar backup JSON">⬆️ Importar</label>
+            <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+            <button class="btn btn-outline" id="reportBtn" title="Descargar informe TXT">📄 Informe</button>
+            <button class="btn btn-outline" id="resetBtn" title="Reiniciar todos mis datos">♻️ Reiniciar</button>
+            <div class="user-area">
+                <button class="user-button" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+                    <span class="avatar" id="headerAvatar">{{ user.initials or user.username[:2] | upper }}</span>
+                    <span id="headerUsername">{{ user.username }}</span>
+                    <span style="font-size:.65rem;">▾</span>
+                </button>
+                <div class="user-dropdown" id="userDropdown" role="menu">
+                    <div class="dropdown-header">
+                        <div class="font-bold" id="dropdownUsername">{{ user.username }}</div>
+                        <div class="text-sm" id="dropdownEmail">{{ user.email }}</div>
+                    </div>
+                    <button data-action="profile" role="menuitem">👤 Mi perfil</button>
+                    <button data-action="account" role="menuitem">🔐 Cuenta y seguridad</button>
+                    <button data-action="db-status" role="menuitem">🗄️ Estado de la base de datos</button>
+                    <button data-action="logout" class="danger-item" role="menuitem">🚪 Cerrar sesión</button>
+                    <div class="db-status" id="dbStatus"><span class="db-dot" id="dbDot"></span><span id="dbStatusText">Comprobando base de datos…</span></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <button class="nav-btn active" data-module="habits">🌱 Hábitos</button>
+        <button class="nav-btn" data-module="routines">🔁 Rutinas</button>
+        <button class="nav-btn" data-module="backlog">📋 Backlog</button>
+        <button class="nav-btn" data-module="metrics">📈 Métricas</button>
+        <button class="nav-btn" data-module="exceptions">⚡ Rompe-Rutinas</button>
+        <button class="nav-btn" data-module="objectives">🎯 Objetivos</button>
+        <button class="nav-btn" data-module="achievements">🏆 Logros</button>
+        <button class="nav-btn" data-module="history">📜 Historial</button>
+        <button class="nav-btn" data-module="profile">👤 Perfil</button>
+    </nav>
+
+    <!-- HÁBITOS -->
+    <section id="mod-habits" class="module active">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">🌱 Hábitos</h2>
+            <p class="text-sm" style="margin-bottom:1rem;">Completa tus hábitos diarios. Las tareas con subtareas se completan marcando sus hojas.</p>
+            <form class="add-form" id="habitForm">
+                <input type="text" id="habitInput" placeholder="Nuevo hábito…" maxlength="500" required>
+                <button type="submit" class="btn btn-primary">+ Añadir hábito</button>
+            </form>
+            <div id="habitTree" class="tree-root"></div>
+        </div>
+        <div class="ach-section" id="habitAchievements"></div>
+    </section>
+
+    <!-- RUTINAS -->
+    <section id="mod-routines" class="module">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">🔁 Rutinas</h2>
+            <p class="text-sm" style="margin-bottom:1rem;">Las rutinas inactivas hoy se muestran atenuadas. Configura sus días desde el botón ✏️.</p>
+            <form class="add-form" id="routineForm">
+                <input type="text" id="routineInput" placeholder="Nueva rutina…" maxlength="500" required>
+                <select id="routineCategory" style="max-width:170px;">
+                    <option value="Comer">🍽️ Comer</option>
+                    <option value="Limpiar">🧹 Limpiar</option>
+                    <option value="Ejercicio">🏃 Ejercicio</option>
+                    <option value="Comprar">🛒 Comprar</option>
+                    <option value="Descansar">😴 Descansar</option>
+                    <option value="Recreacion">🎮 Recreación</option>
+                </select>
+                <button type="submit" class="btn btn-primary">+ Añadir rutina</button>
+            </form>
+            <div id="routineTree" class="tree-root"></div>
+        </div>
+        <div class="ach-section" id="routineAchievements"></div>
+    </section>
+
+    <!-- BACKLOG -->
+    <section id="mod-backlog" class="module">
+        <div class="mod-backlog-layout">
+            <div>
+                <div class="card">
+                    <h2 style="margin-bottom:1rem;">📋 Backlog</h2>
+                    <form class="add-form" id="backlogForm">
+                        <input type="text" id="backlogInput" placeholder="Nueva tarea…" maxlength="500" required>
+                        <select id="backlogPriority" style="max-width:130px;">
+                            <option value="">Prioridad</option>
+                            <option value="Alta">🔴 Alta</option>
+                            <option value="Media">🟠 Media</option>
+                            <option value="Baja">🔵 Baja</option>
+                        </select>
+                        <select id="backlogTag" style="max-width:140px;">
+                            <option value="">Etiqueta</option>
+                            <option value="Trabajo">Trabajo</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Estudio">Estudio</option>
+                            <option value="Finanzas">Finanzas</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">+ Añadir tarea</button>
+                    </form>
+                    <div class="backlog-filters">
+                        <select id="filterTag"><option value="">Todas las etiquetas</option><option value="Trabajo">Trabajo</option><option value="Personal">Personal</option><option value="Estudio">Estudio</option><option value="Finanzas">Finanzas</option></select>
+                        <select id="filterPriority"><option value="">Todas las prioridades</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select>
+                        <select id="sortBacklog"><option value="default">Orden por defecto</option><option value="prio-desc">Prioridad ↓</option><option value="prio-asc">Prioridad ↑</option><option value="name-asc">Nombre A-Z</option></select>
+                    </div>
+                    <div id="backlogTree" class="tree-root"></div>
+                </div>
+                <div class="ach-section" id="backlogAchievements"></div>
+            </div>
+            <aside class="card schedule-panel" id="schedulePanel">
+                <div class="focus-timer" id="focusTimer">
+                    <div class="timer-header">
+                        <strong style="font-size:.85rem;">⏱️ Timer Pro</strong>
+                        <div class="timer-mode-tabs">
+                            <button class="timer-mode-tab active" data-timer-mode="pomodoro">Pomodoro</button>
+                            <button class="timer-mode-tab" data-timer-mode="custom">Custom</button>
+                        </div>
+                    </div>
+                    <div class="timer-ring-wrap">
+                        <svg class="timer-ring" width="140" height="140" viewBox="0 0 140 140">
+                            <circle class="timer-ring-bg" cx="70" cy="70" r="65"></circle>
+                            <circle class="timer-ring-fill" id="timerRingFill" cx="70" cy="70" r="65"></circle>
+                        </svg>
+                        <div class="timer-display-overlay">
+                            <div class="timer-display" id="timerDisplay">25:00</div>
+                            <div class="timer-phase" id="timerPhase">ENFOQUE</div>
+                        </div>
+                    </div>
+                    <div class="timer-config">
+                        <div><label for="timerWorkMin">Enfoque (min)</label><input type="number" id="timerWorkMin" min="1" max="120" value="25"></div>
+                        <div><label for="timerBreakMin">Descanso (min)</label><input type="number" id="timerBreakMin" min="1" max="60" value="5"></div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn btn-primary" id="timerStartBtn">▶ Iniciar</button>
+                        <button class="btn btn-outline" id="timerPauseBtn">⏸ Pausar</button>
+                        <button class="btn btn-outline" id="timerResetBtn">↺ Reiniciar</button>
+                        <button class="btn btn-outline" id="timerSkipBtn">⏭ Saltar</button>
+                        <button class="btn btn-outline" id="timerLinkBtn">🔗 Vincular</button>
+                    </div>
+                    <div class="timer-linked-task hidden" id="timerLinkedTask">
+                        <span id="timerLinkedTitle"></span>
+                        <button class="icon-btn" id="timerUnlinkBtn" title="Desvincular">✕</button>
+                        <button class="btn btn-success" id="timerCompleteTaskBtn" style="font-size:.7rem;padding:.25rem .5rem;">Completar</button>
+                    </div>
+                    <div class="timer-session-bar"><div class="timer-session-bar-track"><div class="timer-session-bar-fill" id="timerSessionBar"></div></div></div>
+                    <div class="timer-cycles" id="timerCycles">0 ciclos completados</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+                    <strong style="font-size:.9rem;">🗓️ Línea de tiempo 04:00 → 03:00</strong>
+                </div>
+                <div id="timeline"></div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- MÉTRICAS -->
+    <section id="mod-metrics" class="module">
+        <div class="today-score-card" id="todayScoreCard"></div>
+        <div class="metrics-grid" id="globalStatsGrid"></div>
+        <div class="card mt-4">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+                <h3>📊 Score por período</h3>
+                <div class="metrics-period-bar" id="metricsPeriodBar">
+                    <button class="period-btn active" data-period="week">Semana</button>
+                    <button class="period-btn" data-period="month">Mes</button>
+                    <button class="period-btn" data-period="quarter">Trimestre</button>
+                    <button class="period-btn" data-period="semester">Semestre</button>
+                    <button class="period-btn" data-period="year">Año</button>
+                </div>
+            </div>
+            <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+        </div>
+        <div class="chart-row">
+            <div class="card chart-card"><h3>🔁 Rutinas por categoría</h3><div class="chart-container"><canvas id="categoryChart"></canvas></div></div>
+            <div class="card chart-card"><h3>🎯 Progreso de objetivos</h3><div class="chart-container"><canvas id="objectiveChart"></canvas></div></div>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom:.8rem;">🔥 Mapa de calor (16 semanas)</h3>
+            <div class="heatmap-wrapper"><div id="heatmap"></div></div>
+            <div class="score-legend" style="margin-top:.8rem;">
+                <span>Menos</span>
+                <span class="legend-dot" style="background:var(--border)"></span>
+                <span class="legend-dot" style="background:#bbf7d0"></span>
+                <span class="legend-dot" style="background:#86efac"></span>
+                <span class="legend-dot" style="background:#4ade80"></span>
+                <span class="legend-dot" style="background:#22c55e"></span>
+                <span class="legend-dot" style="background:#16a34a"></span>
+                <span>Más</span>
+            </div>
+        </div>
+        <div class="chart-row">
+            <div class="card">
+                <h3>⏱️ Impacto del Timer</h3>
+                <div id="timerImpact"></div>
+            </div>
+            <div class="card">
+                <h3>⚡ Correlación de excepciones</h3>
+                <div id="correlation"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXCEPCIONES -->
+    <section id="mod-exceptions" class="module">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">⚡ Rompe-Rutinas</h2>
+            <p class="text-sm" style="margin-bottom:1rem;">Registra fugas de tiempo. Alta resta 5 pts por cada 30 min; Leve resta 2 pts. Si cruza las 04:00, la penalización se reparte entre ambos días.</p>
+            <form id="exceptionForm" class="add-form" style="align-items:flex-end;">
+                <div style="flex:1;min-width:200px;"><label class="text-sm">Título</label><input type="text" id="exceptionTitle" required maxlength="300" placeholder="¿Qué pasó?"></div>
+                <div style="width:130px;"><label class="text-sm">Impacto</label><select id="exceptionImpact"><option value="Leve">Leve</option><option value="Alta">Alta</option></select></div>
+                <div style="width:150px;"><label class="text-sm">Área</label><select id="exceptionArea"><option value="">General</option><option value="Hábitos">Hábitos</option><option value="Rutinas">Rutinas</option><option value="Backlog">Backlog</option><option value="General">General</option></select></div>
+                <div style="width:205px;"><label class="text-sm">Inicio</label><input type="datetime-local" id="exceptionStart" required></div>
+                <div style="width:205px;"><label class="text-sm">Fin</label><input type="datetime-local" id="exceptionEnd" required></div>
+                <div style="flex:1;min-width:180px;"><label class="text-sm">Nota</label><input type="text" id="exceptionNote" maxlength="2000" placeholder="Opcional"></div>
+                <button type="submit" class="btn btn-primary">+ Registrar</button>
+            </form>
+            <div id="exceptionAreas" class="metrics-grid" style="margin:1.2rem 0;"></div>
+            <div id="exceptionList"></div>
+        </div>
+    </section>
+
+    <!-- OBJETIVOS -->
+    <section id="mod-objectives" class="module">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">🎯 Objetivos</h2>
+            <form id="objectiveForm" class="add-form" style="align-items:flex-end;">
+                <div style="flex:1;min-width:200px;"><label class="text-sm">Título</label><input type="text" id="objectiveTitle" required maxlength="300" placeholder="Objetivo…"></div>
+                <div style="width:150px;"><label class="text-sm">Horizonte</label><select id="objectiveHorizon"><option value="semanal">Semanal</option><option value="mensual">Mensual</option><option value="trimestral">Trimestral</option><option value="cuatrimestral">Cuatrimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></div>
+                <div style="width:160px;"><label class="text-sm">Inicio</label><input type="date" id="objectiveStart"></div>
+                <div style="width:160px;"><label class="text-sm">Límite</label><input type="date" id="objectiveEnd"></div>
+                <div style="flex:1;min-width:200px;"><label class="text-sm">Descripción</label><input type="text" id="objectiveDescription" maxlength="2000" placeholder="Opcional"></div>
+                <button type="submit" class="btn btn-primary">+ Crear objetivo</button>
+            </form>
+            <div id="objectiveList"></div>
+        </div>
+    </section>
+
+    <!-- LOGROS -->
+    <section id="mod-achievements" class="module">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">🏆 Logros definitivos</h2>
+            <div class="ach-controls">
+                <select id="achModule"><option value="">Todos los módulos</option><option value="habits">Hábitos</option><option value="routines">Rutinas</option><option value="backlog">Backlog</option></select>
+                <select id="achTimer"><option value="">Timer: todos</option><option value="with">Con timer</option><option value="without">Sin timer</option></select>
+                <input type="text" id="achSearch" placeholder="Buscar logro…">
+                <button class="btn btn-outline" id="achExportBtn">⬇️ Exportar CSV</button>
+            </div>
+            <div id="achievementList"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;">
+                <button class="btn btn-outline" id="achPrevBtn">← Anterior</button>
+                <span class="text-sm" id="achPageInfo"></span>
+                <button class="btn btn-outline" id="achNextBtn">Siguiente →</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="mod-history" class="module">
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                <h2>📜 Historial detallado</h2>
+                <div style="display:flex;gap:.5rem;">
+                    <button class="btn btn-outline" id="historyExportBtn">⬇️ CSV</button>
+                    <button class="btn btn-outline" id="historyReportBtn">📄 TXT</button>
+                </div>
+            </div>
+            <div class="history-period-tabs" id="historyPeriodTabs">
+                <button class="history-period-tab active" data-period="day">Día</button>
+                <button class="history-period-tab" data-period="week">Semana</button>
+                <button class="history-period-tab" data-period="month">Mes</button>
+                <button class="history-period-tab" data-period="quarter">Trimestre</button>
+                <button class="history-period-tab" data-period="quadrimester">Cuatrimestre</button>
+                <button class="history-period-tab" data-period="semester">Semestre</button>
+                <button class="history-period-tab" data-period="year">Año</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;">
+                <button class="btn btn-outline" id="historyPrevBtn">← Anterior</button>
+                <span class="text-sm" id="historyPageInfo"></span>
+                <button class="btn btn-outline" id="historyNextBtn">Siguiente →</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="mod-profile" class="module">
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">👤 Mi perfil</h2>
+            <div class="profile-tabs">
+                <button class="profile-tab active" data-profile-tab="profile">Perfil</button>
+                <button class="profile-tab" data-profile-tab="account">Cuenta y seguridad</button>
+            </div>
+            <div id="profileTabProfile">
+                <div class="profile-grid">
+                    <div class="profile-field"><label>Usuario</label><input type="text" id="profileUsername" disabled></div>
+                    <div class="profile-field"><label>Email</label><input type="email" id="profileEmail"></div>
+                    <div class="profile-field"><label>Tema</label><select id="profileTheme"><option value="light">Claro</option><option value="dark">Oscuro</option></select></div>
+                    <div class="profile-field"><label>Hora de corte lógico</label><input type="number" id="profileCutoff" min="0" max="12"></div>
+                    <div class="profile-field"><label>Pomodoro enfoque (min)</label><input type="number" id="profileWork" min="1" max="120"></div>
+                    <div class="profile-field"><label>Pomodoro descanso (min)</label><input type="number" id="profileBreak" min="1" max="60"></div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-primary" id="profileSaveBtn">Guardar cambios</button>
+                    <span class="text-sm" id="profileCreated"></span>
+                </div>
+                <div class="account-danger" style="margin-top:1.5rem;">
+                    <h4>Backups y diagnóstico</h4>
+                    <p class="text-sm">Exporta un backup completo o restaura una copia del servidor.</p>
+                    <div class="profile-actions">
+                        <button class="btn btn-outline" id="profileExportBtn">⬇️ Exportar JSON</button>
+                        <button class="btn btn-outline" id="profileBackupBtn">💾 Backup servidor</button>
+                        <button class="btn btn-outline" id="profileRestoreABtn">↩️ Restaurar A</button>
+                        <button class="btn btn-outline" id="profileRestoreBBtn">↩️ Restaurar B</button>
+                        <button class="btn btn-outline" id="profileSelfTestBtn">🧪 runTests()</button>
+                    </div>
+                    <div id="selfTestResult" class="text-sm" style="margin-top:.6rem;"></div>
+                </div>
+            </div>
+            <div id="profileTabAccount" class="hidden">
+                <div class="profile-grid">
+                    <div class="profile-field"><label>Contraseña actual</label><input type="password" id="currentPassword" autocomplete="current-password"></div>
+                    <div class="profile-field"><label>Nueva contraseña</label><input type="password" id="newPassword" autocomplete="new-password"><span class="auth-password-hint">Mínimo 8 caracteres, con letras y números.</span></div>
+                    <div class="profile-field"><label>Repetir nueva contraseña</label><input type="password" id="repeatPassword" autocomplete="new-password"></div>
+                </div>
+                <div class="profile-actions"><button class="btn btn-primary" id="changePasswordBtn">Cambiar contraseña</button></div>
+                <div class="account-danger">
+                    <h4>Eliminar cuenta</h4>
+                    <p class="text-sm">Esta acción borra tu usuario y todos tus datos de forma permanente. Se guardará un backup de emergencia antes de continuar.</p>
+                    <div class="profile-actions"><button class="btn btn-danger" id="deleteAccountBtn">Eliminar mi cuenta</button></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- MODAL: SUBTAREA -->
+<div class="modal-overlay" id="subtaskModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;">➕ Añadir subtarea</h3>
+        <p class="text-sm" style="margin-bottom:1rem;" id="subtaskParentTitle"></p>
+        <form id="subtaskForm">
+            <input type="hidden" id="subtaskParentId">
+            <input type="hidden" id="subtaskModule">
+            <input type="text" id="subtaskTitle" placeholder="Título de la subtarea…" required maxlength="500">
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Añadir</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: AGENDAR -->
+<div class="modal-overlay" id="assignModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;">🗓️ Agendar tarea</h3>
+        <p class="text-sm" style="margin-bottom:1rem;" id="assignTaskTitle"></p>
+        <form id="assignForm">
+            <input type="hidden" id="assignNodeId">
+            <label class="text-sm">Tarea</label>
+            <select id="assignNodeSelect"></select>
+            <label class="text-sm" style="display:block;margin-top:.8rem;">Hora</label>
+            <select id="assignHour"></select>
+            <label class="text-sm" style="display:flex;align-items:center;gap:.5rem;margin-top:.8rem;">
+                <input type="checkbox" id="assignRecurring" checked style="width:auto;"> Repetir cada semana
+            </label>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Agendar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDITAR TAREA -->
+<div class="modal-overlay" id="editNodeModal">
+    <div class="modal-content" style="max-width:520px;">
+        <h3 style="margin-bottom:1rem;">✏️ Editar tarea</h3>
+        <form id="editNodeForm">
+            <input type="hidden" id="editNodeId">
+            <div class="edit-sec">
+                <label>Título</label>
+                <input type="text" id="editNodeTitle" required maxlength="500">
+            </div>
+            <div class="edit-sec" id="editRoutineFields">
+                <label>Categoría</label>
+                <select id="editNodeCategory">
+                    <option value="">Sin categoría</option>
+                    <option value="Comer">Comer</option><option value="Limpiar">Limpiar</option><option value="Ejercicio">Ejercicio</option><option value="Comprar">Comprar</option><option value="Descansar">Descansar</option><option value="Recreacion">Recreación</option>
+                </select>
+            </div>
+            <div class="edit-sec" id="editBacklogFields">
+                <label>Prioridad</label>
+                <select id="editNodePriority"><option value="">Sin prioridad</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select>
+                <label style="margin-top:.6rem;">Etiqueta</label>
+                <select id="editNodeTag"><option value="">Sin etiqueta</option><option value="Trabajo">Trabajo</option><option value="Personal">Personal</option><option value="Estudio">Estudio</option><option value="Finanzas">Finanzas</option></select>
+            </div>
+            <div class="edit-sec">
+                <label>Días activos (rutinas / hábitos)</label>
+                <div class="days-picker" id="editDaysPicker">
+                    <span class="day-chip" data-day="0">Dom</span><span class="day-chip" data-day="1">Lun</span><span class="day-chip" data-day="2">Mar</span><span class="day-chip" data-day="3">Mié</span><span class="day-chip" data-day="4">Jue</span><span class="day-chip" data-day="5">Vie</span><span class="day-chip" data-day="6">Sáb</span>
+                </div>
+            </div>
+            <div class="edit-sec">
+                <label>Periodo (opcional)</label>
+                <div style="display:flex;gap:.5rem;">
+                    <input type="date" id="editPeriodStart">
+                    <input type="date" id="editPeriodEnd">
+                </div>
+            </div>
+            <div class="edit-sec">
+                <label>Objetivo vinculado</label>
+                <select id="editObjective"><option value="">Sin objetivo</option></select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: VINCULAR TIMER -->
+<div class="modal-overlay" id="timerLinkModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;">🔗 Vincular tarea al timer</h3>
+        <p class="text-sm" style="margin-bottom:1rem;">Solo se pueden vincular tareas hoja pendientes.</p>
+        <select id="timerLinkSelect"></select>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+            <button type="button" class="btn btn-primary" id="timerLinkConfirmBtn">Vincular</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VINCULAR OBJETIVO -->
+<div class="modal-overlay" id="linkObjectiveModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;">🎯 Vincular tarea a objetivo</h3>
+        <p class="text-sm" style="margin-bottom:1rem;" id="linkObjectiveTaskTitle"></p>
+        <label class="text-sm">Tarea</label>
+        <select id="linkObjectiveTaskSelect"></select>
+        <label class="text-sm" style="display:block;margin-top:.8rem;">Objetivo</label>
+        <select id="linkObjectiveSelect"></select>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+            <button type="button" class="btn btn-primary" id="linkObjectiveConfirmBtn">Vincular</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: SESIÓN TERMINADA -->
+<div class="modal-overlay" id="sessionDoneModal">
+    <div class="modal-content" style="text-align:center;">
+        <div style="font-size:3rem;">🎉</div>
+        <h3 id="sessionDoneTitle" style="margin:.5rem 0;">¡Fase completada!</h3>
+        <p class="text-sm" id="sessionDoneMessage">La siguiente fase no se inicia automáticamente.</p>
+        <div class="modal-actions" style="justify-content:center;">
+            <button class="btn btn-outline" id="sessionDoneStopBtn">Detener</button>
+            <button class="btn btn-primary" id="sessionDoneNextBtn">Iniciar siguiente fase</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ESPACIOS -->
+<div class="modal-overlay" id="workspacesModal">
+    <div class="modal-content" style="max-width:480px;">
+        <h3 style="margin-bottom:1rem;">🗂️ Espacios de trabajo</h3>
+        <div id="workspaceManageList"></div>
+        <form id="workspaceCreateForm" class="add-form" style="margin-top:1rem;">
+            <input type="text" id="workspaceNameInput" placeholder="Nuevo espacio…" required maxlength="80">
+            <button type="submit" class="btn btn-primary">+ Crear</button>
+        </form>
+        <div class="modal-actions"><button type="button" class="btn btn-outline" data-close-modal>Cerrar</button></div>
+    </div>
+</div>
+
+<!-- MODAL: REINICIO -->
+<div class="modal-overlay" id="resetModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;">♻️ Reiniciar datos</h3>
+        <p class="text-sm" style="margin-bottom:1rem;">Se guardará un backup de emergencia y luego se borrarán hábitos, rutinas, backlog, agenda, excepciones, objetivos, logros e historial. Tu cuenta y espacios se conservan.</p>
+        <label class="text-sm">Escribe <strong>REINICIAR</strong> para confirmar</label>
+        <input type="text" id="resetConfirmInput" placeholder="REINICIAR" autocomplete="off">
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
+            <button type="button" class="btn btn-danger" id="resetConfirmBtn">Reiniciar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: HEALTH -->
+<div class="modal-overlay" id="healthModal">
+    <div class="modal-content" style="max-width:560px;">
+        <h3 style="margin-bottom:1rem;">🗄️ Estado de la base de datos</h3>
+        <div id="healthContent" class="text-sm"></div>
+        <div class="modal-actions"><button type="button" class="btn btn-outline" data-close-modal>Cerrar</button></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastText"></span></div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/state.js"></script>
+<script src="/static/js/render.js"></script>
+<script src="/static/js/analytics.js"></script>
+<script src="/static/js/timer.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
