@@ -22,8 +22,10 @@ env/
 htmlcov/
 
 # Datos de ejecución (nunca subir bases ni backups de usuarios)
-data/*.db
-data/*.db-*
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
 data/backups/*
 !data/backups/.gitkeep
 
